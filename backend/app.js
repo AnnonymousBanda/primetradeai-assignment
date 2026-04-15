@@ -1,10 +1,10 @@
 const express = require('express')
 const morgan = require('morgan')
 
-const { apiRouter } = require('./routes')
+const { authRouter, apiRouter } = require('./routes')
 const {
-	notFound,
-	globalErrorHandler,
+    notFound,
+    globalErrorHandler,
 } = require('./controllers/error.controller')
 
 const app = express()
@@ -14,7 +14,8 @@ app.use(express.urlencoded({ extended: true }))
 
 app.use(morgan('dev'))
 
-app.use('/api', apiRouter)
+app.use('/api/v1/auth', authRouter)
+app.use('/api/v1/api', apiRouter)
 
 app.all('*', notFound)
 

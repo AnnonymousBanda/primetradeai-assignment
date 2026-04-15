@@ -1,43 +1,28 @@
-const mongoose = require('mongoose')
+const prisma = null
 
 const connectDB = async () => {
-	const URI = process.env.DB_URI.replace(
-		'<DB_USERNAME>',
-		process.env.DB_USERNAME
-	).replace('<DB_PASSWORD>', process.env.DB_PASSWORD)
+    if (!process.env.DATABASE_URL) {
+        throw new Error('Missing DATABASE_URL in environment variables')
+    }
 
-	try {
-		await mongoose.connect(URI)
-	} catch (error) {
-		console.error(
-			`[${new Date().toISOString()}] ❌ MongoDB Connection Error: ${error.message}`
-		)
-		process.exit(1)
-	}
+    try {
+        console.info(`[${new Date().toISOString()}] Database URL loaded`)
+    } catch (error) {
+        console.error(
+            `[${new Date().toISOString()}] Database connection error: ${error.message}`,
+        )
+        throw error
+    }
 }
 
 const disconnectDB = async () => {
-	try {
-		await mongoose.disconnect()
-	} catch (error) {
-		console.error(
-			`[${new Date().toISOString()}] ❌ MongoDB Disconnection Error: ${error.message}`
-		)
-		process.exit(1)
-	}
+    try {
+        console.warn(`[${new Date().toISOString()}] Database disconnected`)
+    } catch (error) {
+        console.error(
+            `[${new Date().toISOString()}] Database disconnection error: ${error.message}`,
+        )
+    }
 }
 
-mongoose.connection.on('connected', () => {
-	console.info(`[${new Date().toISOString()}] ✅ MongoDB Connected`)
-})
-
-mongoose.connection.on('disconnected', () => {
-	console.warn(`[${new Date().toISOString()}] ⚠️ MongoDB Disconnected`)
-})
-
-mongoose.connection.on('error', (err) => {
-	console.error(`[${new Date().toISOString()}] ❌ MongoDB Error:`, err)
-	process.exit(1)
-})
-
-module.exports = { connectDB, disconnectDB }
+module.exports = { prisma, connectDB, disconnectDB }
