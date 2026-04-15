@@ -1,7 +1,7 @@
 const express = require('express')
 const morgan = require('morgan')
 
-const { authRouter, apiRouter } = require('./routes')
+const { authRouter, apiRouter, signalRouter } = require('./routes')
 const {
     notFound,
     globalErrorHandler,
@@ -15,6 +15,7 @@ app.use(express.urlencoded({ extended: true }))
 app.use(morgan('dev'))
 
 app.use('/api/v1/auth', authRouter)
+app.use('/api/v1/signal', signalRouter)
 app.use('/api/v1/api', apiRouter)
 
 app.all('*', notFound)

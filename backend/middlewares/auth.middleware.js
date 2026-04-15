@@ -14,8 +14,14 @@ const protect = catchAsync(async (req, res, next) => {
     if (!decoded) throw new AppError('Unauthorized', 401)
 
     req.user = decoded.id
+    req.role = decoded.role
 
     next()
 })
 
-module.exports = { protect }
+const mustBeAdmin = catchAsync(async (req, res, next) => {
+    if (req.role !== 'admin') throw new AppError('Forbidden', 403)
+    next()
+})
+
+module.exports = { protect, mustBeAdmin }
