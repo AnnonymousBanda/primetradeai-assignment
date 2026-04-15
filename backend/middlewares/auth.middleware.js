@@ -13,8 +13,10 @@ const protect = catchAsync(async (req, res, next) => {
 
     if (!decoded) throw new AppError('Unauthorized', 401)
 
-    req.user = decoded.id
-    req.role = decoded.role
+    req.user = {
+        id: decoded.id,
+        role: decoded.role,
+    }
 
     next()
 })
