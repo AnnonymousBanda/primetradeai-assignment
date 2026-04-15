@@ -1,0 +1,59 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+model User {
+  id        String      @id @default(uuid())
+  email     String      @unique
+  password  String
+  role      Role        @default(USER)
+  signals   Signal[]
+  watchlist Watchlist[]
+  createdAt DateTime    @default(now())
+}
+
+model Signal {
+  id          String   @id @default(uuid())
+  asset       String
+  action      Action
+  entryPrice  Float
+  targetPrice Float
+  stopLoss    Float
+  status      Status   @default(ACTIVE)
+  authorId    String
+  author      User     @relation(fields: [authorId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([status])
+  @@index([asset])
+}
+
+model Watchlist {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  asset     String
+  createdAt DateTime @default(now())
+
+  @@unique([userId, asset])
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum Action {
+  LONG
+  SHORT
+}
+
+enum Status {
+  ACTIVE
+  CLOSED
+}
