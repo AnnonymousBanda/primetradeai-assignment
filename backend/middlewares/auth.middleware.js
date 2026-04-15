@@ -20,7 +20,7 @@ const protect = catchAsync(async (req, res, next) => {
 })
 
 const mustBeAdmin = catchAsync(async (req, res, next) => {
-    if (req.role !== 'admin') throw new AppError('Forbidden', 403)
+    if (req.role !== 'ADMIN') throw new AppError('Forbidden', 403)
     next()
 })
 

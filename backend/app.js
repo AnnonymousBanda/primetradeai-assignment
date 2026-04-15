@@ -1,7 +1,12 @@
 const express = require('express')
 const morgan = require('morgan')
 
-const { authRouter, apiRouter, signalRouter } = require('./routes')
+const {
+    authRouter,
+    signalRouter,
+    watchlistRouter,
+    usersRouter,
+} = require('./routes')
 const {
     notFound,
     globalErrorHandler,
@@ -16,7 +21,8 @@ app.use(morgan('dev'))
 
 app.use('/api/v1/auth', authRouter)
 app.use('/api/v1/signal', signalRouter)
-app.use('/api/v1/api', apiRouter)
+app.use('/api/v1/watchlist', watchlistRouter)
+app.use('/api/v1/users', usersRouter)
 
 app.all('*', notFound)
 
