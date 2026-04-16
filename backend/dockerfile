@@ -8,8 +8,9 @@ COPY package*.json ./
 
 # Pin the architecture to ensure the right engine is downloaded
 ENV PRISMA_CLI_BINARY_TARGETS=debian-openssl-3.0.x
+ENV PRISMA_SKIP_POSTINSTALL_GENERATE=true
 
-RUN npm install
+RUN npm ci
 
 COPY . .
 

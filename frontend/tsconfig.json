@@ -22,7 +22,7 @@
             "@/*": ["./src/*"]
         },
         "baseUrl": ".",
-        "ignoreDeprecations": "6.0",
+        "ignoreDeprecations": "5.0",
         "noImplicitAny": false,
         "noUnusedLocals": false,
         "noUnusedParameters": false,

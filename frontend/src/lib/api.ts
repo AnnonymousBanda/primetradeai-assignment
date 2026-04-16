@@ -158,7 +158,8 @@ async function getServerAuthToken(): Promise<string | null> {
 
     try {
         const { cookies } = await import('next/headers')
-        return cookies().get(AUTH_COOKIE_NAME)?.value ?? null
+        const cookieStore = await cookies()
+        return cookieStore.get(AUTH_COOKIE_NAME)?.value ?? null
     } catch {
         return null
     }
@@ -247,7 +248,9 @@ async function handleUnauthorized(
             method: 'POST',
             credentials: 'include',
         })
-    } catch {}
+    } catch {
+        void 0
+    }
 
     clearClientCookie(AUTH_COOKIE_NAME)
     window.location.replace('/login')
@@ -288,7 +291,7 @@ async function buildHeaders(
 export async function apiRequest<T, M = undefined>(
     path: string,
     options: ApiRequestOptions = {},
-): Promise<ApiResponse<T, M>> {
+): Promise<ApiSuccessResponse<T, M>> {
     const {
         redirectOnUnauthorized = true,
         headers,
@@ -323,7 +326,7 @@ export async function apiRequest<T, M = undefined>(
         throw new Error(message)
     }
 
-    return payload
+    return payload as ApiSuccessResponse<T, M>
 }
 
 export async function apiFetch<T>(

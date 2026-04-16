@@ -102,7 +102,9 @@ async function proxy(request: NextRequest, pathSegments: string[]) {
                     toCookieOptions(),
                 )
             }
-        } catch {}
+        } catch {
+            void 0
+        }
     }
 
     return response
