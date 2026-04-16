@@ -1,4 +1,5 @@
-export const AUTH_COOKIE_NAME = 'auth_token'
+export const AUTH_COOKIE_NAME = 'auth_jwt'
+export const LEGACY_AUTH_COOKIE_NAME = 'auth_token'
 export const DEFAULT_API_URL = 'http://localhost:8000/api/v1'
 
 export type Role = 'USER' | 'ADMIN'
@@ -151,6 +152,18 @@ function clearClientCookie(name: string): void {
     document.cookie = `${name}=; Path=/; Max-Age=0; SameSite=Lax`
 }
 
+function getClientAuthToken(): string | null {
+    return (
+        getClientCookie(AUTH_COOKIE_NAME) ??
+        getClientCookie(LEGACY_AUTH_COOKIE_NAME)
+    )
+}
+
+function clearClientAuthCookies(): void {
+    clearClientCookie(AUTH_COOKIE_NAME)
+    clearClientCookie(LEGACY_AUTH_COOKIE_NAME)
+}
+
 async function getServerAuthToken(): Promise<string | null> {
     if (isBrowser()) {
         return null
@@ -159,7 +172,11 @@ async function getServerAuthToken(): Promise<string | null> {
     try {
         const { cookies } = await import('next/headers')
         const cookieStore = await cookies()
-        return cookieStore.get(AUTH_COOKIE_NAME)?.value ?? null
+        return (
+            cookieStore.get(AUTH_COOKIE_NAME)?.value ??
+            cookieStore.get(LEGACY_AUTH_COOKIE_NAME)?.value ??
+            null
+        )
     } catch {
         return null
     }
@@ -252,7 +269,7 @@ async function handleUnauthorized(
         void 0
     }
 
-    clearClientCookie(AUTH_COOKIE_NAME)
+    clearClientAuthCookies()
     window.location.replace('/login')
 }
 
@@ -273,7 +290,7 @@ async function buildHeaders(
     }
 
     if (isBrowser()) {
-        const token = getClientCookie(AUTH_COOKIE_NAME)
+        const token = getClientAuthToken()
         if (token) {
             requestHeaders.set('Authorization', `Bearer ${token}`)
         }
@@ -365,7 +382,7 @@ export const authApi = {
             credentials: 'include',
         }).catch(() => undefined)
 
-        clearClientCookie(AUTH_COOKIE_NAME)
+        clearClientAuthCookies()
     },
 }
 

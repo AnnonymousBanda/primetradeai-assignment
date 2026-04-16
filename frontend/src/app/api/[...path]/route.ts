@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { AUTH_COOKIE_NAME } from '@/lib/api'
+import { AUTH_COOKIE_NAME, LEGACY_AUTH_COOKIE_NAME } from '@/lib/api'
 
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 7
 
@@ -51,6 +51,11 @@ function toExpiredCookieOptions() {
     }
 }
 
+function clearAuthCookies(response: NextResponse) {
+    response.cookies.set(AUTH_COOKIE_NAME, '', toExpiredCookieOptions())
+    response.cookies.set(LEGACY_AUTH_COOKIE_NAME, '', toExpiredCookieOptions())
+}
+
 async function proxy(request: NextRequest, pathSegments: string[]) {
     const path = `/${pathSegments.join('/')}`
 
@@ -59,7 +64,7 @@ async function proxy(request: NextRequest, pathSegments: string[]) {
             success: true,
             data: { ok: true },
         })
-        response.cookies.set(AUTH_COOKIE_NAME, '', toExpiredCookieOptions())
+        clearAuthCookies(response)
         return response
     }
 
@@ -79,7 +84,9 @@ async function proxy(request: NextRequest, pathSegments: string[]) {
 
     headers.set('Accept', 'application/json')
 
-    const token = request.cookies.get(AUTH_COOKIE_NAME)?.value
+    const token =
+        request.cookies.get(AUTH_COOKIE_NAME)?.value ??
+        request.cookies.get(LEGACY_AUTH_COOKIE_NAME)?.value
     if (token) {
         headers.set('Authorization', `Bearer ${token}`)
     }
@@ -124,7 +131,7 @@ async function proxy(request: NextRequest, pathSegments: string[]) {
     })
 
     if (backendResponse.status === 401) {
-        response.cookies.set(AUTH_COOKIE_NAME, '', toExpiredCookieOptions())
+        clearAuthCookies(response)
     }
 
     if (
