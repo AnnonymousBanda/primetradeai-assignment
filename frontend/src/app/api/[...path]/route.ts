@@ -1,11 +1,34 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { API_URL, AUTH_COOKIE_NAME } from '@/lib/api'
+import { AUTH_COOKIE_NAME } from '@/lib/api'
 
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 7
 
+function getBackendBaseUrl(): string | null {
+    const raw = process.env.API_URL ?? process.env.NEXT_PUBLIC_API_URL
+    if (!raw) {
+        return null
+    }
+
+    const trimmed = raw.trim().replace(/\/$/, '')
+    if (!trimmed) {
+        return null
+    }
+
+    if (/^https?:\/\//i.test(trimmed)) {
+        return trimmed
+    }
+
+    return `http://${trimmed}`
+}
+
 function getProxyTarget(request: NextRequest, pathSegments: string[]): string {
+    const baseUrl = getBackendBaseUrl()
+    if (!baseUrl) {
+        throw new Error('Missing API_URL/NEXT_PUBLIC_API_URL for API proxy')
+    }
+
     const path = `/${pathSegments.join('/')}`
-    return `${API_URL}${path}${request.nextUrl.search}`
+    return `${baseUrl}${path}${request.nextUrl.search}`
 }
 
 function toCookieOptions() {
@@ -64,12 +87,31 @@ async function proxy(request: NextRequest, pathSegments: string[]) {
     const hasBody = !['GET', 'HEAD'].includes(request.method)
     const body = hasBody ? await request.text() : undefined
 
-    const backendResponse = await fetch(getProxyTarget(request, pathSegments), {
-        method: request.method,
-        headers,
-        body,
-        cache: 'no-store',
-    })
+    let backendResponse: Response
+    try {
+        backendResponse = await fetch(getProxyTarget(request, pathSegments), {
+            method: request.method,
+            headers,
+            body,
+            cache: 'no-store',
+        })
+    } catch (error) {
+        const message =
+            error instanceof Error
+                ? error.message
+                : 'Failed to reach upstream backend'
+
+        return NextResponse.json(
+            {
+                success: false,
+                error: {
+                    code: 502,
+                    message,
+                },
+            },
+            { status: 502 },
+        )
+    }
 
     const responseText = await backendResponse.text()
     const response = new NextResponse(responseText, {
