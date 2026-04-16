@@ -23,7 +23,7 @@ export function ProtectedRoute({
         }
 
         if (!isLoading && user && requiredRole && user.role !== requiredRole) {
-            router.replace('/')
+            router.replace('/login')
         }
     }, [isLoading, requiredRole, router, user])
 

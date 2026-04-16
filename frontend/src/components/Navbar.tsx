@@ -14,10 +14,18 @@ import {
 } from 'lucide-react'
 
 export function Navbar() {
-    const { user, logout } = useAuth()
+    const { user, logout, isLoading } = useAuth()
     const pathname = usePathname()
 
     const isActive = (path: string) => pathname === path
+
+    if (isLoading) {
+        return (
+            <nav className="sticky top-0 z-50 border-b border-border/50 bg-background/80 backdrop-blur-xl">
+                <div className="container mx-auto flex h-16 items-center justify-between px-4" />
+            </nav>
+        )
+    }
 
     return (
         <nav className="sticky top-0 z-50 border-b border-border/50 bg-background/80 backdrop-blur-xl">
