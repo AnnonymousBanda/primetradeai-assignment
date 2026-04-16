@@ -104,6 +104,12 @@ export interface UpdatedRoleUser {
     role: 'ADMIN'
 }
 
+export interface AdminGlobalSignalsQueryOptions {
+    status?: SignalStatus
+    page?: number
+    limit?: number
+}
+
 export interface ApiRequestOptions extends RequestInit {
     redirectOnUnauthorized?: boolean
 }
@@ -377,6 +383,30 @@ export const signalsApi = {
         apiRequest<DeleteResourceResponse>(`/signal/${id}`, {
             method: 'DELETE',
         }),
+}
+
+export function getUserWatchlistSignals() {
+    return apiRequest<Signal[], PaginationMeta>('/signal/my-watchlist')
+}
+
+export function getAdminGlobalSignals(
+    queryOptions: AdminGlobalSignalsQueryOptions = {},
+) {
+    const searchParams = new URLSearchParams()
+
+    searchParams.set('status', queryOptions.status ?? 'ACTIVE')
+
+    if (typeof queryOptions.page === 'number') {
+        searchParams.set('page', String(queryOptions.page))
+    }
+
+    if (typeof queryOptions.limit === 'number') {
+        searchParams.set('limit', String(queryOptions.limit))
+    }
+
+    return apiRequest<Signal[], PaginationMeta>(
+        `/signal?${searchParams.toString()}`,
+    )
 }
 
 export const watchlistApi = {

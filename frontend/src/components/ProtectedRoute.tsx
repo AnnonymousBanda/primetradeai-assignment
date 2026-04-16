@@ -23,7 +23,9 @@ export function ProtectedRoute({
         }
 
         if (!isLoading && user && requiredRole && user.role !== requiredRole) {
-            router.replace(user.role === 'ADMIN' ? '/admin/dashboard' : '/dashboard')
+            router.replace(
+                user.role === 'ADMIN' ? '/admin/dashboard' : '/dashboard',
+            )
         }
     }, [isLoading, requiredRole, router, user])
 

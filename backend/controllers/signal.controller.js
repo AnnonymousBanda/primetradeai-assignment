@@ -125,6 +125,79 @@ const getSignalById = catchAsync(async (req, res) => {
         data: signal,
     })
 })
+const getMyWatchlistSignals = catchAsync(async (req, res) => {
+    const userId = req.user.id
+    const page = parseInt(req.query.page) || 1
+    const limit = parseInt(req.query.limit) || 10
+    const skip = (page - 1) * limit
+
+    console.log('=== DEBUG START ===')
+    console.log('1. Authenticated User ID:', userId, '| Type:', typeof userId)
+
+    const userWatchlist = await prisma.watchlist.findMany({
+        where: { userId },
+        select: { asset: true },
+    })
+
+    const assetList = userWatchlist.map((item) =>
+        item.asset.trim().toUpperCase(),
+    )
+    console.log('2. Watchlist Assets Found:', assetList)
+
+    if (assetList.length === 0) {
+        console.log('3. STOPPING: User has no items in their watchlist.')
+        return res.status(200).json({
+            success: true,
+            data: [],
+            meta: { page, limit, totalCount: 0, totalPages: 0 },
+        })
+    }
+
+    // Let's do a raw check to see what signals actually exist for these assets, ignoring status first
+    const rawSignalsExist = await prisma.signal.findMany({
+        where: { asset: { in: assetList } },
+        select: { asset: true, status: true },
+    })
+    console.log(
+        '4. Raw Signals in DB matching these assets (Ignoring Status):',
+        rawSignalsExist,
+    )
+
+    const [signals, totalCount] = await Promise.all([
+        prisma.signal.findMany({
+            where: {
+                asset: { in: assetList },
+                status: 'ACTIVE',
+            },
+            skip,
+            take: limit,
+            orderBy: { createdAt: 'desc' },
+        }),
+        prisma.signal.count({
+            where: {
+                asset: { in: assetList },
+                status: 'ACTIVE',
+            },
+        }),
+    ])
+
+    console.log(
+        '5. Final Filtered Signals returning to frontend:',
+        signals.length,
+    )
+    console.log('=== DEBUG END ===')
+
+    return res.status(200).json({
+        success: true,
+        data: signals,
+        meta: {
+            page,
+            limit,
+            totalCount,
+            totalPages: Math.ceil(totalCount / limit),
+        },
+    })
+})
 
 module.exports = {
     createSignal,
@@ -132,4 +205,5 @@ module.exports = {
     getSignalById,
     updateSignal,
     deleteSignal,
+    getMyWatchlistSignals,
 }
