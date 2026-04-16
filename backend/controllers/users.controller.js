@@ -1,7 +1,5 @@
-const { PrismaClient } = require('@prisma/client')
 const { catchAsync, AppError } = require('../utils/error.util')
-
-const prisma = new PrismaClient()
+const { prisma } = require('../database')
 
 const updateUserRole = catchAsync(async (req, res) => {
     const { id } = req.params

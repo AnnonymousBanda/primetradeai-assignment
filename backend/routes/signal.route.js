@@ -16,7 +16,7 @@ router.use(protect)
 router.post('/', mustBeAdmin, createSignal)
 router.get('/', getSignalsUsingQuery)
 router.get('/:id', getSignalById)
-router.put('/:id', mustBeAdmin, updateSignal)
+router.patch('/:id', mustBeAdmin, updateSignal)
 router.delete('/:id', mustBeAdmin, deleteSignal)
 
 module.exports = router
