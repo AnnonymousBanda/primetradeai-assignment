@@ -6,7 +6,7 @@ const {
     getSignalById,
     updateSignal,
     deleteSignal,
-    getMyWatchlistSignals
+    getMyWatchlistSignals,
 } = require('../controllers/signal.controller')
 const { protect, mustBeAdmin } = require('../middlewares/auth.middleware.js')
 
