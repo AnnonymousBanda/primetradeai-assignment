@@ -23,7 +23,7 @@ export function ProtectedRoute({
         }
 
         if (!isLoading && user && requiredRole && user.role !== requiredRole) {
-            router.replace('/login')
+            router.replace(user.role === 'ADMIN' ? '/admin/dashboard' : '/dashboard')
         }
     }, [isLoading, requiredRole, router, user])
 
@@ -36,11 +36,19 @@ export function ProtectedRoute({
     }
 
     if (!user) {
-        return null
+        return (
+            <div className="flex min-h-screen items-center justify-center">
+                <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+            </div>
+        )
     }
 
     if (requiredRole && user.role !== requiredRole) {
-        return null
+        return (
+            <div className="flex min-h-screen items-center justify-center">
+                <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+            </div>
+        )
     }
 
     return <>{children}</>
