@@ -65,7 +65,27 @@ const loginUser = catchAsync(async (req, res) => {
     const user = await prisma.user.findUnique({ where: { email } })
     if (!user) throw new AppError('Invalid email or password', 401)
 
-    const isMatch = await bcrypt.compare(password, user.password)
+    let isMatch = false
+
+    // Support legacy seeded users with plaintext passwords in production DB.
+    // On successful login, upgrade them to a bcrypt hash immediately.
+    const storedPassword = user.password ?? ''
+    const looksLikeBcryptHash = /^\$2[aby]\$\d{2}\$/.test(storedPassword)
+
+    if (looksLikeBcryptHash) {
+        isMatch = await bcrypt.compare(password, storedPassword)
+    } else {
+        isMatch = password === storedPassword
+
+        if (isMatch) {
+            const hashedPassword = await bcrypt.hash(password, 10)
+            await prisma.user.update({
+                where: { id: user.id },
+                data: { password: hashedPassword },
+            })
+        }
+    }
+
     if (!isMatch) throw new AppError('Invalid email or password', 401)
 
     const token = await signToken({ id: user.id, role: user.role })

@@ -10,16 +10,8 @@ type MeResponse = {
     }
 }
 
-const AUTH_COOKIE = 'auth_token'
-
-function getApiBaseUrl() {
-    const raw = (
-        process.env.API_URL ??
-        process.env.NEXT_PUBLIC_API_URL ??
-        ''
-    ).replace(/\/$/, '')
-    return raw
-}
+const AUTH_COOKIE = 'auth_jwt'
+const LEGACY_AUTH_COOKIE = 'auth_token'
 
 function normalizeToken(token: string | undefined) {
     return token?.replace(/"/g, '')
@@ -29,18 +21,17 @@ function redirectTo(request: NextRequest, path: string) {
     return NextResponse.redirect(new URL(path, request.url))
 }
 
-async function getSessionRole(token: string | undefined): Promise<Role | null> {
+async function getSessionRole(
+    request: NextRequest,
+    token: string | undefined,
+): Promise<Role | null> {
     if (!token) {
         return null
     }
 
-    const baseUrl = getApiBaseUrl()
-    if (!baseUrl) {
-        return null
-    }
-
     try {
-        const res = await fetch(`${baseUrl}/auth/me`, {
+        const meUrl = new URL('/api/auth/me', request.url)
+        const res = await fetch(meUrl.toString(), {
             method: 'GET',
             headers: {
                 Authorization: `Bearer ${token}`,
@@ -74,8 +65,11 @@ export async function middleware(request: NextRequest) {
         path.startsWith('/dashboard') || path.startsWith('/watchlist')
     const isAdminRoute = path.startsWith('/admin')
 
-    const token = normalizeToken(request.cookies.get(AUTH_COOKIE)?.value)
-    const role = await getSessionRole(token)
+    const token = normalizeToken(
+        request.cookies.get(AUTH_COOKIE)?.value ??
+            request.cookies.get(LEGACY_AUTH_COOKIE)?.value,
+    )
+    const role = await getSessionRole(request, token)
     const isValid = role !== null
 
     if (!isValid && (isUserRoute || isAdminRoute)) {
