@@ -1,5 +1,5 @@
 # PrimeTrade AI
-**Live Instance:** [primetradeai.atttrack.online](https://primetradeai.atttrack.online/)
+**Live Instance:** [https://primetradeai.atttrack.online/)](https://primetradeai-assignment-eta.vercel.app/)
 
 A full-stack, containerized crypto signal tracking platform. Designed to filter out global market noise by allowing users to build personalized tracking dashboards based on admin-curated signals.
 
